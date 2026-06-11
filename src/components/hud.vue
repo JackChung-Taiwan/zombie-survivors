@@ -23,6 +23,19 @@
           :style="{ width: hpPercent + '%' }"
         />
       </div>
+
+      <!-- 等級與經驗 -->
+      <div class="flex items-center gap-2">
+        <span class="rounded-lg bg-amber-400/90 px-2 py-0.5 text-sm font-black text-black">
+          Lv {{ stats.level }}
+        </span>
+        <div class="h-3 w-44 overflow-hidden rounded-full bg-black/40 backdrop-blur-md">
+          <div
+            class="h-full rounded-full bg-gradient-to-r from-cyan-400 to-emerald-400 transition-[width] duration-100"
+            :style="{ width: xpPercent + '%' }"
+          />
+        </div>
+      </div>
     </div>
 
     <!-- 右上：壓測敵人數 -->
@@ -62,6 +75,9 @@ const count = ref(props.stats.enemies || 600);
 
 const hpPercent = computed(() =>
   props.stats.maxHp > 0 ? (props.stats.hp / props.stats.maxHp) * 100 : 0,
+);
+const xpPercent = computed(() =>
+  props.stats.xpToNext > 0 ? Math.min(100, (props.stats.xp / props.stats.xpToNext) * 100) : 0,
 );
 const timeText = computed(() => {
   const total = Math.floor(props.stats.time);

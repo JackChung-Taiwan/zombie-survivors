@@ -105,6 +105,12 @@ export class EnemySystem {
     this.mesh.thinInstanceBufferUpdated('color');
   }
 
+  /** 重設：所有存活敵人重新於環狀邊界生成（用於重新開始一輪） */
+  reset(playerX: number, playerZ: number) {
+    for (let i = 0; i < this.count; i++) this.spawn(i, playerX, playerZ);
+    this.mesh.thinInstanceBufferUpdated('color');
+  }
+
   /** 將所有存活敵人寫入空間網格 */
   insertAll(grid: SpatialGrid) {
     for (let i = 0; i < this.count; i++) grid.insert(i, this.posX[i], this.posZ[i]);

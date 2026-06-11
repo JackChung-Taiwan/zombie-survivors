@@ -4,7 +4,21 @@
 
     <hud :stats="stats" @set-count="onSetCount" />
 
-    <joystick class="absolute bottom-8 left-8 z-10" @move="onJoyMove" @end="onJoyEnd" />
+    <joystick
+      v-show="stats.state === 'running'"
+      class="absolute bottom-8 left-8 z-10"
+      @move="onJoyMove"
+      @end="onJoyEnd"
+    />
+
+    <level-up-modal
+      v-if="stats.state === 'levelup'"
+      :level="stats.level"
+      :choices="stats.choices"
+      @choose="onChoose"
+    />
+
+    <game-over-modal v-if="stats.state === 'dead'" :stats="stats" @restart="onRestart" />
   </div>
 </template>
 
@@ -13,9 +27,23 @@ import { onBeforeUnmount, onMounted, reactive, ref } from 'vue';
 import { createGame, type GameHandle, type GameStats } from '../game/game';
 import Hud from './hud.vue';
 import Joystick from './joystick.vue';
+import LevelUpModal from './level-up-modal.vue';
+import GameOverModal from './game-over-modal.vue';
 
 const canvasRef = ref<HTMLCanvasElement>();
-const stats = reactive<GameStats>({ fps: 0, enemies: 0, kills: 0, time: 0, hp: 0, maxHp: 0 });
+const stats = reactive<GameStats>({
+  fps: 0,
+  enemies: 0,
+  kills: 0,
+  time: 0,
+  hp: 0,
+  maxHp: 0,
+  level: 1,
+  xp: 0,
+  xpToNext: 1,
+  state: 'running',
+  choices: [],
+});
 
 let game: GameHandle | undefined;
 
@@ -36,5 +64,11 @@ function onJoyEnd() {
 }
 function onSetCount(n: number) {
   game?.setEnemyCount(n);
+}
+function onChoose(index: number) {
+  game?.chooseUpgrade(index);
+}
+function onRestart() {
+  game?.restart();
 }
 </script>

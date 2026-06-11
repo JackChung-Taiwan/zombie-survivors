@@ -11,8 +11,12 @@ import {
 import { CONFIG } from './config';
 import { SpatialGrid } from './spatial-grid';
 import { EnemySystem } from './enemy-system';
+import { RunState } from './upgrades';
 
-/** 自動武器系統：定時朝最近敵人發射投射物，命中造成傷害。投射物以物件池 + thin instances 管理。 */
+/** 多重彈之間的角度間隔（弧度） */
+const SPREAD_STEP = 0.16;
+
+/** 自動武器：定時朝最近敵人發射投射物（數量／傷害／射程等讀取 RunState，隨升級變動）。 */
 export class WeaponSystem {
   readonly mesh: Mesh;
 
@@ -27,7 +31,7 @@ export class WeaponSystem {
   private matrixBuffer: Float32Array;
   private timer = 0;
 
-  private readonly scaleActive: Vector3;
+  private readonly scaleActive = new Vector3(1, 1, 1);
   private readonly scaleHidden = new Vector3(0, 0, 0);
   private readonly rotQ = Quaternion.Identity();
   private readonly posV = new Vector3();
@@ -43,7 +47,6 @@ export class WeaponSystem {
     this.life = new Float32Array(this.cap);
     this.active = new Uint8Array(this.cap);
     this.matrixBuffer = new Float32Array(this.cap * 16);
-    this.scaleActive = new Vector3(1, 1, 1);
 
     const base = MeshBuilder.CreateSphere(
       'projectile',
@@ -57,7 +60,6 @@ export class WeaponSystem {
     base.material = material;
     this.mesh = base;
 
-    /** 初始全部隱藏 */
     for (let i = 0; i < this.cap; i++) this.writeMatrix(i);
     base.thinInstanceSetBuffer('matrix', this.matrixBuffer, 16, false);
     base.thinInstanceCount = this.cap;
@@ -71,22 +73,21 @@ export class WeaponSystem {
     this.mat.copyToArray(this.matrixBuffer, i * 16);
   }
 
-  private spawnProjectile(x: number, z: number, dirX: number, dirZ: number) {
+  private spawnProjectile(x: number, z: number, dirX: number, dirZ: number, speed: number) {
     for (let i = 0; i < this.cap; i++) {
       if (this.active[i]) continue;
       this.active[i] = 1;
       this.px[i] = x;
       this.pz[i] = z;
-      this.vx[i] = dirX * CONFIG.weapon.projectileSpeed;
-      this.vz[i] = dirZ * CONFIG.weapon.projectileSpeed;
+      this.vx[i] = dirX * speed;
+      this.vz[i] = dirZ * speed;
       this.life[i] = CONFIG.weapon.lifetime;
       return;
     }
   }
 
-  /** 朝最近且在射程內的敵人發射 */
-  private fire(playerX: number, playerZ: number, enemies: EnemySystem) {
-    const range2 = CONFIG.weapon.range * CONFIG.weapon.range;
+  private fire(playerX: number, playerZ: number, enemies: EnemySystem, run: RunState) {
+    const range2 = run.range * run.range;
     let bestIndex = -1;
     let bestDist = range2;
     for (let i = 0; i < enemies.count; i++) {
@@ -99,24 +100,29 @@ export class WeaponSystem {
       }
     }
     if (bestIndex < 0) return;
-    const dx = enemies.getX(bestIndex) - playerX;
-    const dz = enemies.getZ(bestIndex) - playerZ;
-    const len = Math.hypot(dx, dz) || 1;
-    this.spawnProjectile(playerX, playerZ, dx / len, dz / len);
+
+    const baseAngle = Math.atan2(enemies.getZ(bestIndex) - playerZ, enemies.getX(bestIndex) - playerX);
+    const count = run.projectileCount;
+    for (let k = 0; k < count; k++) {
+      const angle = baseAngle + (k - (count - 1) / 2) * SPREAD_STEP;
+      this.spawnProjectile(playerX, playerZ, Math.cos(angle), Math.sin(angle), run.projectileSpeed);
+    }
   }
 
-  /** 每幀更新：發射、移動、命中判定。回傳本幀擊殺數。 */
+  /** 每幀更新；命中擊殺時以死亡座標呼叫 onKill。回傳本幀擊殺數。 */
   update(
     dt: number,
     playerX: number,
     playerZ: number,
     enemies: EnemySystem,
     grid: SpatialGrid,
+    run: RunState,
+    onKill: (x: number, z: number) => void,
   ): number {
     this.timer += dt;
-    while (this.timer >= CONFIG.weapon.fireInterval) {
-      this.timer -= CONFIG.weapon.fireInterval;
-      this.fire(playerX, playerZ, enemies);
+    while (this.timer >= run.fireInterval) {
+      this.timer -= run.fireInterval;
+      this.fire(playerX, playerZ, enemies, run);
     }
 
     const hitR = CONFIG.weapon.projectileRadius + CONFIG.enemy.radius;
@@ -124,9 +130,7 @@ export class WeaponSystem {
     let kills = 0;
 
     for (let i = 0; i < this.cap; i++) {
-      if (!this.active[i]) {
-        continue;
-      }
+      if (!this.active[i]) continue;
 
       this.px[i] += this.vx[i] * dt;
       this.pz[i] += this.vz[i] * dt;
@@ -137,7 +141,6 @@ export class WeaponSystem {
         continue;
       }
 
-      /** 命中查詢（取網格內第一個命中目標） */
       let hitEnemy = -1;
       grid.query(this.px[i], this.pz[i], (j) => {
         if (hitEnemy >= 0 || !enemies.isAlive(j)) return;
@@ -147,7 +150,12 @@ export class WeaponSystem {
       });
 
       if (hitEnemy >= 0) {
-        if (enemies.damage(hitEnemy, CONFIG.weapon.damage, playerX, playerZ)) kills++;
+        const ex = enemies.getX(hitEnemy);
+        const ez = enemies.getZ(hitEnemy);
+        if (enemies.damage(hitEnemy, run.damage, playerX, playerZ)) {
+          kills++;
+          onKill(ex, ez);
+        }
         this.active[i] = 0;
       }
 
@@ -156,5 +164,12 @@ export class WeaponSystem {
 
     this.mesh.thinInstanceBufferUpdated('matrix');
     return kills;
+  }
+
+  reset() {
+    this.timer = 0;
+    this.active.fill(0);
+    for (let i = 0; i < this.cap; i++) this.writeMatrix(i);
+    this.mesh.thinInstanceBufferUpdated('matrix');
   }
 }
