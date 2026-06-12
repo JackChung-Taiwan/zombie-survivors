@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>殭屍大逃殺 Zombie Survivors｜3D 倖存者類 roguelite</title>
+<meta name="description" content="在無盡殭屍潮中倖存的 3D 倖存者類 roguelite。自動開火、撿經驗升級、擊敗 5 隻殭屍王破關。瀏覽器即玩，跨平台。" />
+<meta property="og:title" content="殭屍大逃殺 Zombie Survivors" />
+<meta property="og:description" content="3D 倖存者類 roguelite，瀏覽器即玩。" />
+<meta property="og:image" content="assets/shot1.png" />
+<style>
+  :root {
+    --bg0: #0a0f0a;
+    --bg1: #142016;
+    --bg2: #0c1118;
+    --lime: #c6ff7a;
+    --green: #7ec850;
+    --red: #ff5a5a;
+    --ink: #14210f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+    color: #eaf3ea;
+    background: linear-gradient(160deg, var(--bg0) 0%, var(--bg1) 45%, var(--bg2) 100%);
+    background-attachment: fixed;
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+  a { color: inherit; text-decoration: none; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+  /* 漂浮多邊形背景 */
+  #bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+  .poly { position: absolute; opacity: .16; animation: drift ease-in-out infinite; will-change: transform; }
+  @keyframes drift {
+    0% { transform: translate(0,0) rotate(0); }
+    50% { transform: translate(-3rem,-4rem) rotate(40deg); }
+    100% { transform: translate(0,0) rotate(0); }
+  }
+
+  /* Hero */
+  header { text-align: center; padding: 90px 20px 60px; }
+  h1.title {
+    font-size: clamp(48px, 11vw, 120px);
+    font-weight: 900; letter-spacing: .12em; color: var(--lime);
+    -webkit-text-stroke: 5px var(--ink); paint-order: stroke fill;
+    text-shadow: 0 6px 0 rgba(0,0,0,.35);
+  }
+  .sub { margin-top: 14px; color: #b9d3b0; font-size: clamp(15px,2.4vw,20px); font-weight: 700; letter-spacing: .04em; }
+  .cta { margin-top: 34px; display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    padding: 16px 30px; border-radius: 999px; font-weight: 900; font-size: 20px; letter-spacing: .08em;
+    border: 2px solid rgba(255,255,255,.15); background: rgba(255,255,255,.1); backdrop-filter: blur(6px);
+    box-shadow: 0 12px 30px rgba(0,0,0,.35); cursor: pointer; transition: transform .18s, background .18s; color: #fff;
+  }
+  .btn:hover { transform: scale(1.05); background: rgba(255,255,255,.2); }
+  .btn--play { background: linear-gradient(180deg, #8fdc5e, #4a9c2e); border-color: rgba(198,255,122,.5); color: #08210a; }
+  .btn--play:hover { background: linear-gradient(180deg, #9fe96e, #58b237); }
+
+  .hero-shot { margin: 50px auto 0; max-width: 880px; }
+  .hero-shot img { width: 100%; border-radius: 18px; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 30px 80px rgba(0,0,0,.55); }
+
+  /* Sections */
+  section { padding: 56px 0; }
+  h2 { font-size: clamp(26px,4vw,40px); font-weight: 900; text-align: center; margin-bottom: 8px; }
+  h2 .dot { color: var(--lime); }
+  .lead { text-align: center; color: #a9c2a3; margin-bottom: 34px; }
+
+  .grid { display: grid; gap: 16px; }
+  .feat { grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); }
+  .card {
+    background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 18px; padding: 22px;
+    transition: transform .18s, border-color .18s;
+  }
+  .card:hover { transform: translateY(-4px); border-color: rgba(198,255,122,.4); }
+  .card .ico { font-size: 34px; }
+  .card h3 { margin: 10px 0 6px; font-size: 19px; }
+  .card p { color: #a9c2a3; font-size: 14px; }
+
+  .chips { grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); }
+  .chip { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.1); border-radius: 14px; padding: 14px; }
+  .chip .name { font-weight: 900; }
+  .chip .tag { font-size: 12px; color: var(--lime); font-weight: 700; }
+  .chip .d { font-size: 12px; color: #9fb89a; margin-top: 4px; }
+
+  .boss { grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); }
+  .boss .chip .tag { color: var(--red); }
+
+  .gallery { grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); }
+  .gallery img { width: 100%; border-radius: 14px; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 40px rgba(0,0,0,.5); }
+
+  footer { text-align: center; padding: 50px 20px 70px; color: #8fae89; }
+  footer a { color: var(--lime); font-weight: 700; }
+  .end-cta { margin: 20px 0 30px; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+
+<header>
+  <div class="wrap">
+    <h1 class="title">殭屍大逃殺</h1>
+    <p class="sub">Zombie Survivors・3D 倖存者類 roguelite・瀏覽器即玩</p>
+    <div class="cta">
+      <a class="btn btn--play" href="https://zombie-survivors-e4y.pages.dev" target="_blank" rel="noopener">▶ 立即遊玩</a>
+      <a class="btn" href="https://github.com/craig7351/zombie-survivors" target="_blank" rel="noopener">⭐ GitHub</a>
+    </div>
+    <div class="hero-shot"><img src="assets/shot1.png" alt="殭屍大逃殺 遊戲畫面" loading="lazy" /></div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <h2>遊戲<span class="dot">特色</span></h2>
+    <p class="lead">在無盡殭屍潮中走位求生，撿經驗升級、組合武器、依序擊敗 5 隻殭屍王破關。</p>
+    <div class="grid feat">
+      <div class="card"><div class="ico">🔫</div><h3>自動戰鬥</h3><p>角色自動朝最近殭屍開火，你只要專心走位與選升級。</p></div>
+      <div class="card"><div class="ico">🪓</div><h3>多樣武器</h3><p>子彈、環繞飛斧、傷害光環、連鎖閃電、新星爆、回力鏢自由疊加。</p></div>
+      <div class="card"><div class="ico">🧟</div><h3>5 隻殭屍王</h3><p>衝撞、彈幕、震波、毒池、環形彈幕，依序登場，打完即破關。</p></div>
+      <div class="card"><div class="ico">🐕</div><h3>6 種角色</h3><p>倖存者與狗狗，各有不同起始攻擊與專長。</p></div>
+      <div class="card"><div class="ico">🏆</div><h3>全球排行榜</h3><p>存活時間排名與全球累計統計，與所有玩家較勁。</p></div>
+      <div class="card"><div class="ico">📱</div><h3>跨平台</h3><p>桌機鍵鼠、手機觸控搖桿皆可，開瀏覽器就能玩。</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>可選<span class="dot">角色</span></h2>
+    <p class="lead">每個角色有不同的起始攻擊。</p>
+    <div class="grid chips">
+      <div class="chip"><div class="name">🔫 麥特</div><div class="tag">強化單發子彈</div><div class="d">均衡</div></div>
+      <div class="chip"><div class="name">👟 莉絲</div><div class="tag">三連發散射</div><div class="d">高速、脆皮</div></div>
+      <div class="chip"><div class="name">⚡ 山姆</div><div class="tag">極速連射</div><div class="d">輸出爆發</div></div>
+      <div class="chip"><div class="name">🪓 尚恩</div><div class="tag">環繞飛斧</div><div class="d">拾取廣</div></div>
+      <div class="chip"><div class="name">🐕 德國狼犬</div><div class="tag">連鎖閃電</div><div class="d">機動、射程長</div></div>
+      <div class="chip"><div class="name">🐶 巴哥犬</div><div class="tag">傷害光環</div><div class="d">肉盾、血厚</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>殭屍<span class="dot">王</span></h2>
+    <p class="lead">依序登場，擊敗第 5 隻即破關。</p>
+    <div class="grid boss">
+      <div class="chip"><div class="name">1. 巨胖殭屍</div><div class="tag">蓄力衝撞</div></div>
+      <div class="chip"><div class="name">2. 狂暴肋骨怪</div><div class="tag">骨刺連射</div></div>
+      <div class="chip"><div class="name">3. 斷臂巨怪</div><div class="tag">震地波</div></div>
+      <div class="chip"><div class="name">4. 腐毒殭屍</div><div class="tag">毒池</div></div>
+      <div class="chip"><div class="name">5. 終極殭屍王</div><div class="tag">環形彈幕</div></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <h2>遊戲<span class="dot">畫面</span></h2>
+    <div class="grid gallery">
+      <img src="assets/shot2.png" alt="畫面 2" loading="lazy" />
+      <img src="assets/shot3.png" alt="畫面 3" loading="lazy" />
+      <img src="assets/shot4.png" alt="畫面 4" loading="lazy" />
+      <img src="assets/shot1.png" alt="畫面 1" loading="lazy" />
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <h2 style="margin-bottom:18px">準備好倖存了嗎？</h2>
+    <div class="cta end-cta">
+      <a class="btn btn--play" href="https://zombie-survivors-e4y.pages.dev" target="_blank" rel="noopener">▶ 立即遊玩</a>
+    </div>
+    <p>以 Vue 3 + Babylon.js 打造的純前端 3D 遊戲・<a href="https://github.com/craig7351/zombie-survivors" target="_blank" rel="noopener">原始碼 GitHub</a></p>
+  </div>
+</footer>
+
+<script>
+  // 產生漂浮多邊形背景
+  const COLORS = ['#3f7a3a', '#5b8c3a', '#7a2b2b', '#9c5a2b', '#2b3a44', '#4a6b2e'];
+  const SHAPES = ['circle', 'square', 'triangle'];
+  const bg = document.getElementById('bg');
+  const rand = (a, b) => Math.random() * (b - a) + a;
+  for (let i = 0; i < 20; i++) {
+    const el = document.createElement('div');
+    el.className = 'poly';
+    const size = rand(2, 10);
+    const shape = SHAPES[(Math.random() * SHAPES.length) | 0];
+    const color = COLORS[(Math.random() * COLORS.length) | 0];
+    el.style.left = rand(-5, 100) + '%';
+    el.style.top = rand(-5, 100) + '%';
+    el.style.width = size + 'rem';
+    el.style.height = size + 'rem';
+    el.style.animationDuration = rand(16, 34) + 's';
+    el.style.animationDelay = -rand(0, 20) + 's';
+    el.style.transform = 'rotate(' + rand(0, 360) + 'deg)';
+    if (shape === 'circle') { el.style.background = color; el.style.borderRadius = '50%'; }
+    else if (shape === 'square') { el.style.background = color; el.style.borderRadius = '12px'; }
+    else { el.style.background = color; el.style.clipPath = 'polygon(50% 0, 0 100%, 100% 100%)'; }
+    bg.appendChild(el);
+  }
+</script>
+</body>
+</html>
