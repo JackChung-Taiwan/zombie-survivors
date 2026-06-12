@@ -37,12 +37,16 @@ export async function setupCharacterPreview(canvas: HTMLCanvasElement, modelPath
     idle?.play(true);
 
     const root = res.meshes[0];
-    const { min, max } = root.getHierarchyBoundingVectors();
-    cam.target = new Vector3((min.x + max.x) / 2, (min.y + max.y) / 2, (min.z + max.z) / 2);
-    cam.radius = Math.max(max.x - min.x, max.y - min.y, max.z - min.z, 0.5) * 1.6;
+    /** 先正規化到統一最大尺寸，配合固定相機距離 → 各角色看起來一樣大 */
+    const b1 = root.getHierarchyBoundingVectors();
+    const size = Math.max(b1.max.x - b1.min.x, b1.max.y - b1.min.y, b1.max.z - b1.min.z, 0.5);
+    root.scaling.scaleInPlace(2 / size);
+    const b = root.getHierarchyBoundingVectors();
+    cam.target = new Vector3((b.min.x + b.max.x) / 2, (b.min.y + b.max.y) / 2, (b.min.z + b.max.z) / 2);
+    cam.radius = 2.7;
 
     scene.onBeforeRenderObservable.add(() => {
-      cam.alpha += (engine.getDeltaTime() / 1000) * 0.7; // 緩慢旋轉
+      cam.alpha += (engine.getDeltaTime() / 1000) * 0.3; // 緩慢旋轉
     });
     engine.runRenderLoop(() => scene.render());
     return { dispose: () => engine.dispose() };

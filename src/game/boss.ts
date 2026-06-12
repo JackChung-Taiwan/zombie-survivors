@@ -19,6 +19,8 @@ interface BossDef {
   skillInterval: number;
   /** 招式說明（顯示於王血條） */
   skillName: string;
+  /** 圖鑑詳述 */
+  desc: string;
 }
 
 /** 依序登場的 5 隻王，打完第 5 隻即破關 */
@@ -33,6 +35,7 @@ const BOSS_DEFS: BossDef[] = [
     skill: 'charge',
     skillInterval: 5,
     skillName: '蓄力衝撞',
+    desc: '第 1 隻王。高血量肉盾，會短暫蓄力後高速衝撞，注意拉開距離。',
   },
   {
     name: '狂暴肋骨怪',
@@ -44,6 +47,7 @@ const BOSS_DEFS: BossDef[] = [
     skill: 'aimed',
     skillInterval: 2.6,
     skillName: '骨刺連射',
+    desc: '第 2 隻王。移動極快，會朝你連射骨刺彈幕，邊跑邊閃。',
   },
   {
     name: '斷臂巨怪',
@@ -55,6 +59,7 @@ const BOSS_DEFS: BossDef[] = [
     skill: 'shockwave',
     skillInterval: 4,
     skillName: '震地波',
+    desc: '第 3 隻王。高血量，定期落地震波向外擴散，看到擴張環就走位避開。',
   },
   {
     name: '腐毒殭屍',
@@ -66,6 +71,7 @@ const BOSS_DEFS: BossDef[] = [
     skill: 'poison',
     skillInterval: 4.5,
     skillName: '毒池',
+    desc: '第 4 隻王。在你腳下生成毒池，停留會持續扣血，別站在綠池裡。',
   },
   {
     name: '終極殭屍王',
@@ -77,11 +83,20 @@ const BOSS_DEFS: BossDef[] = [
     skill: 'radial',
     skillInterval: 3,
     skillName: '環形彈幕',
+    desc: '最終王。血量最高、體型最大，釋放全方位環形彈幕，擊敗即破關。',
   },
 ];
 
 /** 王的總數（打完即破關） */
 export const BOSS_COUNT = BOSS_DEFS.length;
+
+/** 王圖鑑資訊（供選單顯示） */
+export const BOSS_INFO = BOSS_DEFS.map((d) => ({
+  name: d.name,
+  skill: d.skillName,
+  desc: d.desc,
+  model: d.model,
+}));
 
 /** 受擊白光持續時間（秒） */
 const FLASH_DUR = 0.16;

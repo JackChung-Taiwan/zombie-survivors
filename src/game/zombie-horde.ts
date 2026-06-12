@@ -19,11 +19,19 @@ const ZOMBIE_TYPES: ZombieType[] = [
   { path: '/models/zombie/zombie_arm.gltf', hp: 4, speed: 5, scale: 1 },
 ];
 
+/** 怪物圖鑑資訊（供選單顯示） */
+export const ZOMBIE_INFO = [
+  { name: '基本殭屍', role: '雜兵', desc: '數量最多、血量普通的基本殭屍，靠數量淹沒你。', model: '/models/zombie/zombie_basic.gltf' },
+  { name: '肋骨怪', role: '快速', desc: '移動速度極快、血量低，會迅速貼近，優先處理。', model: '/models/zombie/zombie_ribcage.gltf' },
+  { name: '胖殭屍', role: '坦克', desc: '血量厚、移動慢的肉盾，需要較多火力才打得倒。', model: '/models/zombie/zombie_chubby.gltf' },
+  { name: '斷臂殭屍', role: '一般', desc: '中規中矩的近戰殭屍，速度與血量都中等。', model: '/models/zombie/zombie_arm.gltf' },
+];
+
 const BASE_HEIGHT = 2.4;
 /** 每種類型預先 instantiate 的數量（總和為怪海上限） */
 const PER_TYPE = 13;
 /** 怪物血量全域倍率 */
-const HP_SCALE = 0.5;
+const HP_SCALE = 0.75;
 /** 受擊白光持續時間（秒） */
 const FLASH_DUR = 0.16;
 const WHITE = new Color3(1, 1, 1);
