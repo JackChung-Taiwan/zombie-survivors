@@ -21,6 +21,7 @@ export interface RunSubmit {
   level: number;
   gold: number;
   won: boolean;
+  difficulty: string;
 }
 
 /** 送出一場結算（fire-and-forget，離線/失敗則忽略） */
@@ -36,10 +37,11 @@ export async function submitRun(run: RunSubmit): Promise<void> {
   }
 }
 
-/** 取全球排行榜；失敗回傳 null */
-export async function fetchLeaderboard(limit = 10): Promise<RunRecord[] | null> {
+/** 取全球排行榜；可選難度過濾；失敗回傳 null */
+export async function fetchLeaderboard(limit = 10, difficulty?: string): Promise<RunRecord[] | null> {
   try {
-    const res = await fetch(`${BASE}/leaderboard?limit=${limit}`);
+    const q = difficulty ? `&difficulty=${encodeURIComponent(difficulty)}` : '';
+    const res = await fetch(`${BASE}/leaderboard?limit=${limit}${q}`);
     if (!res.ok) return null;
     return (await res.json()) as RunRecord[];
   } catch {

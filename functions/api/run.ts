@@ -17,6 +17,7 @@ export const onRequestPost = async ({ request, env }: FnContext): Promise<Respon
   const won = body.won ? 1 : 0;
   const name = sanitizeText(body.name, 16) || '倖存者';
   const character = sanitizeText(body.character, 16) || '?';
+  const difficulty = sanitizeText(body.difficulty, 16) || 'easy';
   const deviceId = sanitizeText(body.deviceId, 64);
   const now = Date.now();
 
@@ -24,9 +25,9 @@ export const onRequestPost = async ({ request, env }: FnContext): Promise<Respon
     await env.DB.batch([
       env.DB
         .prepare(
-          'INSERT INTO runs (device_id,name,character,time,kills,level,gold,won,created_at) VALUES (?,?,?,?,?,?,?,?,?)',
+          'INSERT INTO runs (device_id,name,character,time,kills,level,gold,won,difficulty,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)',
         )
-        .bind(deviceId, name, character, time, kills, level, gold, won, now),
+        .bind(deviceId, name, character, time, kills, level, gold, won, difficulty, now),
       env.DB
         .prepare('UPDATE stats SET plays=plays+1, total_time=total_time+?, total_kills=total_kills+? WHERE id=1')
         .bind(time, kills),

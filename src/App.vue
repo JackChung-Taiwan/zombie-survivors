@@ -79,6 +79,7 @@ function onGameOver(result: RunResult) {
   const playerName = getPlayerName() || '倖存者';
   const character = getCharacter(lastCharId).name;
   /** 本機紀錄（離線/快取） */
+  const diffId = difficulty.value.id;
   addRecord({
     name: playerName,
     character,
@@ -87,6 +88,7 @@ function onGameOver(result: RunResult) {
     level: result.level,
     gold: result.gold,
     won: result.won,
+    difficulty: diffId,
     at: Date.now(),
   });
   /** 上傳全球（失敗則忽略） */
@@ -98,6 +100,7 @@ function onGameOver(result: RunResult) {
     level: result.level,
     gold: result.gold,
     won: result.won,
+    difficulty: diffId,
   });
 }
 

@@ -8,6 +8,8 @@ export interface RunRecord {
   level: number;
   gold: number;
   won: boolean;
+  /** 難度 id（easy/normal/hard/nightmare/hell） */
+  difficulty: string;
   /** 紀錄時間（毫秒），由呼叫端帶入 */
   at: number;
 }
