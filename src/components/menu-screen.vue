@@ -39,7 +39,20 @@
             :class="cardClass(c.id)"
             @click="onCard(c)"
           >
-            <span class="text-4xl">{{ c.emoji }}</span>
+            <div class="relative h-16 w-16">
+              <canvas
+                :ref="(el) => setCanvas(c.id, el)"
+                class="h-16 w-16 rounded-xl ring-1 ring-white/10"
+                width="128"
+                height="128"
+              />
+              <span
+                v-if="!ready[c.id]"
+                class="absolute inset-0 flex items-center justify-center text-4xl"
+              >
+                {{ c.emoji }}
+              </span>
+            </div>
             <span class="font-black">{{ c.name }}</span>
             <span class="text-[0.7rem] leading-tight text-white/60">{{ c.trait }}</span>
             <span
@@ -91,9 +104,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { CHARACTERS, getCharacter, type Character } from '../game/characters';
 import { PERMA, permaCost, type MetaData, type PermaUpgrade } from '../game/meta';
+import { setupCharacterPreview, type PreviewHandle } from '../game/character-previews';
 
 const props = defineProps<{ meta: MetaData }>();
 const emit = defineEmits<{
@@ -106,6 +120,29 @@ const emit = defineEmits<{
 const characters = CHARACTERS;
 const perma = PERMA;
 const selectedId = ref('matt');
+
+/** 角色即時 3D 預覽：每張卡一個引擎，播 idle 並旋轉；就緒前以 emoji 替代 */
+const ready = ref<Record<string, boolean>>({});
+const canvases = new Map<string, HTMLCanvasElement>();
+const handles: PreviewHandle[] = [];
+function setCanvas(id: string, el: unknown) {
+  if (el instanceof HTMLCanvasElement) canvases.set(id, el);
+}
+onMounted(async () => {
+  await nextTick();
+  for (const c of CHARACTERS) {
+    const canvas = canvases.get(c.id);
+    if (!canvas || !c.model) continue;
+    const h = await setupCharacterPreview(canvas, c.model);
+    if (h) {
+      handles.push(h);
+      ready.value = { ...ready.value, [c.id]: true };
+    }
+  }
+});
+onBeforeUnmount(() => {
+  for (const h of handles) h.dispose();
+});
 
 const DEBUG_KEY = 'animal-survivors:debug';
 const debug = ref(localStorage.getItem(DEBUG_KEY) === '1');

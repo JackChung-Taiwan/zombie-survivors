@@ -162,14 +162,14 @@ export class ExtraWeapons {
 
   /** 載入長矛模型，建立回力鏢池（載入失敗則用方塊） */
   private async loadBoomerangs(scene: Scene) {
-    const tmpl = await loadModel(scene, '/models/zombie/weapon_spear.gltf', 1.5);
+    const tmpl = await loadModel(scene, '/models/zombie/weapon_spear.gltf', 0.6);
     for (let i = 0; i < MAX_BOOMERANGS; i++) {
       const holder = new TransformNode(`boomerang-${i}`, scene);
       if (tmpl) {
         const vis = i === 0 ? tmpl : tmpl.clone(`spear-${i}`, null);
         if (vis) {
           vis.parent = holder;
-          vis.position.y = -0.75;
+          vis.position.y = -0.3;
           vis.rotation.z = Math.PI / 2; // 長矛橫躺旋轉
           vis.setEnabled(true);
         }

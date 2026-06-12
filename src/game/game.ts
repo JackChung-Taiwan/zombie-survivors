@@ -620,7 +620,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       hurtTimer = 0.35;
       hurtBurst(scene, new Vector3(px, groundY + 1, pz));
       sound.hurt();
-      if (dmgAccum >= 1) spawnText(scene, new Vector3(px, groundY + 2.2, pz), `-${Math.round(dmgAccum)}`, '#ff5a5a', 2);
+      if (dmgAccum >= 1) spawnText(scene, new Vector3(px, groundY + 2.2, pz), `-${Math.round(dmgAccum)}`, '#ff2222', 2);
       dmgAccum = 0;
     }
 
