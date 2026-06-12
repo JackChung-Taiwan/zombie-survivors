@@ -158,6 +158,15 @@ onBeforeUnmount(() => {
 const DEBUG_KEY = 'animal-survivors:debug';
 const debug = ref(localStorage.getItem(DEBUG_KEY) === '1');
 function toggleDebug() {
+  /** 開啟需通過驗證；關閉不需要 */
+  if (!debug.value) {
+    const answer = window.prompt('請問作者的全名（三個字）？');
+    if (answer === null) return;
+    if (answer.trim() !== '黃國書') {
+      window.alert('答錯了，無法開啟 Debug');
+      return;
+    }
+  }
   debug.value = !debug.value;
   localStorage.setItem(DEBUG_KEY, debug.value ? '1' : '0');
 }

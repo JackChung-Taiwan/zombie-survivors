@@ -16,19 +16,30 @@
         </p>
       </div>
 
-      <!-- 暱稱 -->
-      <input
-        v-model="name"
-        maxlength="16"
-        placeholder="輸入暱稱（上排行榜用）"
-        class="w-full max-w-xs rounded-full bg-black/30 px-5 py-2 text-center font-bold text-white outline-none ring-1 ring-white/15 backdrop-blur-md placeholder:text-white/40"
-        @change="saveName"
-        @blur="saveName"
-      />
+      <!-- 暱稱（必填才能開始） -->
+      <div class="w-full max-w-xs">
+        <input
+          v-model="name"
+          maxlength="16"
+          placeholder="輸入暱稱後開始"
+          class="w-full rounded-full bg-black/30 px-5 py-2 text-center font-bold text-white outline-none ring-1 backdrop-blur-md placeholder:text-white/40"
+          :class="canStart ? 'ring-white/15' : 'ring-rose-400/50'"
+          @change="saveName"
+          @blur="saveName"
+        />
+        <p v-if="!canStart" class="mt-1 text-center text-xs text-rose-300/80">請先輸入暱稱</p>
+      </div>
 
       <!-- 按鈕 -->
       <div class="flex w-full max-w-xs flex-col gap-4">
-        <button class="portal-btn portal-btn--play" @click="emit('start')">▶ 遊戲開始</button>
+        <button
+          class="portal-btn portal-btn--play"
+          :class="{ 'portal-btn--disabled': !canStart }"
+          :disabled="!canStart"
+          @click="onStart"
+        >
+          ▶ 遊戲開始
+        </button>
         <button class="portal-btn" @click="emit('leaderboard')">🏆 排行榜</button>
         <button class="portal-btn" @click="emit('bestiary')">🧟 怪物圖鑑</button>
       </div>
@@ -65,9 +76,15 @@ const emit = defineEmits<{
 }>();
 
 const name = ref(getPlayerName());
+const canStart = computed(() => name.value.trim().length > 0);
 function saveName() {
   setPlayerName(name.value);
   name.value = getPlayerName();
+}
+function onStart() {
+  if (!canStart.value) return;
+  saveName();
+  emit('start');
 }
 
 /** 先顯示本機統計，抓到全球就覆蓋 */
@@ -115,5 +132,14 @@ const timeText = computed(() => {
 }
 .portal-btn--play:hover {
   background: linear-gradient(180deg, #8fdc5e, #58b237);
+}
+.portal-btn--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(0.5);
+}
+.portal-btn--disabled:hover {
+  transform: none;
+  background: linear-gradient(180deg, #7ec850, #4a9c2e);
 }
 </style>

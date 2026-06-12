@@ -4,15 +4,8 @@
 
     <hud :stats="stats" />
 
-    <!-- 右上控制：debug（經驗 x10）＋ 暫停 -->
+    <!-- 右上控制：靜音／暫停／技能等級／Debug -->
     <div v-show="stats.state === 'running'" class="absolute right-4 top-4 z-10 flex items-center gap-2">
-      <button
-        class="rounded-full px-3 py-2 text-xs font-black backdrop-blur-md transition active:scale-95"
-        :class="xpDebug ? 'bg-lime-400 text-black' : 'bg-black/40 text-white/70'"
-        @click="onToggleXpDebug"
-      >
-        🐞 EXP×10 {{ xpDebug ? 'ON' : 'OFF' }}
-      </button>
       <button
         class="flex h-11 w-11 items-center justify-center rounded-full bg-black/40 text-xl text-white backdrop-blur-md transition hover:bg-black/60 active:scale-95"
         @click="onToggleMute"
@@ -196,8 +189,6 @@ const stats = reactive<GameStats>({
 
 let game: GameHandle | undefined;
 
-const XP_DEBUG_KEY = 'animal-survivors:xpDebug';
-const xpDebug = ref(localStorage.getItem(XP_DEBUG_KEY) === '1');
 
 const MUTE_KEY = 'animal-survivors:muted';
 const muted = ref(localStorage.getItem(MUTE_KEY) === '1');
@@ -229,7 +220,6 @@ onMounted(() => {
     },
     onGameOver: (r) => emit('gameover', r),
   });
-  game.setXpDebug(xpDebug.value);
   game.setMuted(muted.value);
 });
 
@@ -253,11 +243,6 @@ function onTogglePause() {
 function onJump() {
   game?.jump();
 }
-function onToggleXpDebug() {
-  xpDebug.value = !xpDebug.value;
-  localStorage.setItem(XP_DEBUG_KEY, xpDebug.value ? '1' : '0');
-  game?.setXpDebug(xpDebug.value);
-}
 function onToggleMute() {
   muted.value = !muted.value;
   localStorage.setItem(MUTE_KEY, muted.value ? '1' : '0');
@@ -268,6 +253,15 @@ function onToggleStats() {
   if (showStats.value && game) upgradeStatus.value = game.getUpgradeStatus();
 }
 function onToggleDebug() {
+  /** 每次開啟參數面板都需通過驗證（答對作者全名）；關閉不需要 */
+  if (!showDebug.value) {
+    const answer = window.prompt('請問作者的全名（三個字）？');
+    if (answer === null) return;
+    if (answer.trim() !== '黃國書') {
+      window.alert('答錯了，無法開啟 Debug');
+      return;
+    }
+  }
   showDebug.value = !showDebug.value;
   if (showDebug.value && game) debugParams.value = game.getDebugParams();
 }

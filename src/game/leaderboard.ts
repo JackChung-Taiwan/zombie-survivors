@@ -13,13 +13,13 @@ export interface RunRecord {
 }
 
 const NAME_KEY = 'animal-survivors:name';
-/** 玩家暱稱（用於排行榜上榜） */
+/** 玩家暱稱（用於排行榜上榜）；未設定回傳空字串 */
 export function getPlayerName(): string {
-  return localStorage.getItem(NAME_KEY) || '倖存者';
+  return (localStorage.getItem(NAME_KEY) || '').trim();
 }
 export function setPlayerName(name: string) {
   try {
-    localStorage.setItem(NAME_KEY, name.trim().slice(0, 16) || '倖存者');
+    localStorage.setItem(NAME_KEY, name.trim().slice(0, 16));
   } catch {
     /* 忽略寫入失敗 */
   }

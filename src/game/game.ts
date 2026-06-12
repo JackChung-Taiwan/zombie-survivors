@@ -620,7 +620,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
       hurtTimer = 0.35;
       hurtBurst(scene, new Vector3(px, groundY + 1, pz));
       sound.hurt();
-      if (dmgAccum >= 1) spawnText(scene, new Vector3(px, groundY + 2.2, pz), `-${Math.round(dmgAccum)}`, '#ff2222', 2);
+      if (dmgAccum >= 1) spawnText(scene, new Vector3(px, groundY + 2.4, pz), `-${Math.round(dmgAccum)}`, '#ff1818', 3);
       dmgAccum = 0;
     }
 
@@ -694,6 +694,7 @@ export function createGame(canvas: HTMLCanvasElement, options: GameOptions = {})
 
   const debugSpec: DebugParam[] = [
     boolParam('玩家', '無敵', () => invincible, (v) => (invincible = v)),
+    boolParam('玩家', 'EXP×10', () => xpDebug, (v) => (xpDebug = v)),
     cfgParam('玩家', '移動速度', 0, 40, 0.5, () => run.moveSpeed, (v) => (run.moveSpeed = v)),
     cfgParam('玩家', '生命上限', 10, 1000, 10, () => run.maxHp, (v) => (run.maxHp = v)),
     cfgParam('玩家', '接觸傷害/秒', 0, 100, 1, () => CONFIG.player.contactDps, (v) => (CONFIG.player.contactDps = v)),

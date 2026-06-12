@@ -64,7 +64,7 @@ function onGameOver(result: RunResult) {
   meta.gold += result.gold;
   saveMeta(meta);
   recordStats(result.time, result.kills);
-  const playerName = getPlayerName();
+  const playerName = getPlayerName() || '倖存者';
   const character = getCharacter(lastCharId).name;
   /** 本機紀錄（離線/快取） */
   addRecord({
