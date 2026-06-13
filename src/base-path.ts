@@ -1,25 +1,19 @@
+import { Tools } from '@babylonjs/core';
+
 /**
  * GitHub Pages 會把網站放在 /zombie-survivors/ 子路徑。
- * BabylonJS 模型清單原本使用 /models/...，因此在送出請求前補上部署路徑。
+ * 透過 BabylonJS 官方 URL 前處理鉤子修正 /models/...，
+ * 避免覆寫瀏覽器 XMLHttpRequest 而造成部分瀏覽器啟動失敗。
  */
 const baseUrl = import.meta.env.BASE_URL;
+const originalPreprocessUrl = Tools.PreprocessUrl;
 
-function resolveModelUrl(url: string): string {
-  if (baseUrl === '/' || !url.startsWith('/models/')) return url;
-  return `${baseUrl.replace(/\/$/, '')}${url}`;
-}
+Tools.PreprocessUrl = (url: string): string => {
+  let resolved = url;
 
-if (typeof window !== 'undefined' && baseUrl !== '/') {
-  const originalOpen = XMLHttpRequest.prototype.open;
+  if (baseUrl !== '/' && url.startsWith('/models/')) {
+    resolved = `${baseUrl.replace(/\/$/, '')}${url}`;
+  }
 
-  XMLHttpRequest.prototype.open = function (
-    method: string,
-    url: string | URL,
-    async = true,
-    username?: string | null,
-    password?: string | null,
-  ): void {
-    const resolvedUrl = typeof url === 'string' ? resolveModelUrl(url) : url;
-    (originalOpen as any).call(this, method, resolvedUrl, async, username, password);
-  } as typeof XMLHttpRequest.prototype.open;
-}
+  return originalPreprocessUrl ? originalPreprocessUrl(resolved) : resolved;
+};
