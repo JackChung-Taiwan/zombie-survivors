@@ -6,12 +6,37 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <meta name="theme-color" content="#0a0f0a" />
     <title>殭屍大逃殺 Zombie Survivors</title>
+    <style>
+      html, body, #app { width: 100%; height: 100%; margin: 0; }
+      body { background: #0b1020; color: #fff; font-family: system-ui, "Segoe UI", sans-serif; }
+      .boot-message { min-height: 100%; display: grid; place-items: center; text-align: center; padding: 24px; box-sizing: border-box; }
+      .boot-message strong { display: block; color: #c6ff7a; font-size: 1.5rem; margin-bottom: 10px; }
+      .boot-message span { color: rgba(255,255,255,.68); }
+    </style>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div class="boot-message" id="boot-message">
+        <div>
+          <strong>殭屍大逃殺載入中</strong>
+          <span>第一次開啟 3D 遊戲可能需要一些時間。</span>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.addEventListener('error', function (event) {
+        var el = document.getElementById('boot-message');
+        if (!el) return;
+        el.innerHTML = '<div><strong>遊戲載入失敗</strong><span>請按 Ctrl + F5 重新整理；若仍無法載入，請回報此頁面的錯誤畫面。</span></div>';
+        console.error('[boot error]', event.error || event.message);
+      });
+      window.addEventListener('unhandledrejection', function (event) {
+        console.error('[boot rejection]', event.reason);
+      });
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
